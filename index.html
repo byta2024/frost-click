@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071321">
+<title>FrostClick — Break the Ice</title>
+
+<style>
+:root {
+  --bg: #071321;
+  --ice: #a9efff;
+  --blue: #4bbfff;
+  --muted: #8ba7bb;
+  --line: #a9eaff20;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #effaff;
+  font-family: Inter, system-ui, Arial, sans-serif;
+  background:
+    radial-gradient(ellipse at 50% -10%, #174a70, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, #102a4c, transparent 42%),
+    var(--bg);
+  overflow-x: hidden;
+}
+button { font: inherit; }
+.app { width: min(1000px, calc(100% - 26px)); margin: auto; padding: 23px 0 45px; }
+
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; margin-bottom: 35px;
+}
+.brand { display: flex; align-items: center; gap: 11px; font-weight: 900; font-size: 20px; }
+.logo {
+  width: 43px; height: 43px; display: grid; place-items: center;
+  border-radius: 14px; color: #09243b; font-size: 23px;
+  background: linear-gradient(145deg, #e4fcff, #4bbfff);
+  box-shadow: 0 0 25px #55c8ff38;
+}
+.brand small { display: block; color: var(--muted); font-size: 9px; letter-spacing: 2px; margin-top: 3px; }
+.nav { display: flex; gap: 4px; padding: 5px; border: 1px solid var(--line); border-radius: 14px; background: #091827cc; }
+.nav button {
+  border: 0; color: var(--muted); background: transparent; padding: 11px 14px;
+  border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 12px;
+}
+.nav button.active { color: white; background: #24445e; }
+
+.hero { text-align: center; margin-bottom: 27px; }
+.eyebrow { color: var(--ice); font-size: 10px; font-weight: 900; letter-spacing: 2.5px; margin-bottom: 13px; }
+h1 { margin: 0; font-size: clamp(35px, 6vw, 57px); letter-spacing: -3px; font-weight: 900; }
+h1 span {
+  color: transparent; background: linear-gradient(90deg, #fff, #94e7ff, #55b8ff);
+  background-clip: text;
+}
+.subtitle { color: #91aabd; font-size: 13px; margin-top: 12px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin-bottom: 22px; }
+.stat {
+  background: linear-gradient(145deg, #12283cdd, #0a1a2add);
+  border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+}
+.stat-label { color: #8da9bc; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 800; }
+.stat-value { font-size: clamp(20px, 3vw, 28px); font-weight: 900; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.stat-value small { font-size: 10px; color: #8da9bc; }
+
+.game-panel {
+  border: 1px solid #a4e6ff22; border-radius: 24px; padding: 22px;
+  background: radial-gradient(ellipse at 50% 38%, #153e5b70, transparent 53%), linear-gradient(145deg, #10283bdc, #081725f2);
+  box-shadow: 0 25px 80px #00000035; position: relative;
+}
+.game-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line);
+  border-radius: 99px; padding: 8px 11px; color: #bad3e3; font-size: 10px;
+  font-weight: 800; background: #0715228a;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #72899b; }
+.dot.live { background: #5af0b2; box-shadow: 0 0 12px #5af0b2; }
+.timer-options { display: flex; gap: 4px; }
+.timer-options button {
+  padding: 8px 10px; color: #91aabd; border: 1px solid transparent;
+  border-radius: 9px; background: transparent; cursor: pointer; font-size: 10px; font-weight: 900;
+}
+.timer-options button.active { color: white; background: #3c8fbb24; border-color: #79d5ff3d; }
+
+.arena {
+  position: relative; min-height: 350px; display: grid; place-items: center;
+  isolation: isolate; overflow: visible;
+}
+.arena::before {
+  content: ""; position: absolute; width: 290px; height: 290px;
+  border-radius: 50%; background: #49c9ff0a; filter: blur(18px);
+}
+.orbit {
+  position: absolute; width: 280px; height: 280px; border: 1px solid #9be9ff17;
+  border-radius: 50%; pointer-events: none; animation: orbit 22s linear infinite;
+}
+.orbit::before, .orbit::after {
+  content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: #b5f1ff; box-shadow: 0 0 15px #69d5ff;
+}
+.orbit::before { top: 32px; left: 36px; }
+.orbit::after { right: 20px; bottom: 68px; width: 4px; height: 4px; }
+.orbit.two { width: 325px; height: 225px; transform: rotate(-28deg); border-style: dashed; opacity: .5; animation-direction: reverse; }
+@keyframes orbit { to { rotate: 360deg; } }
+
+#clickButton {
+  width: 200px; height: 200px; position: relative; z-index: 2; border-radius: 50%;
+  cursor: pointer; border: 0; color: #09243b;
+  background: radial-gradient(circle at 35% 24%, #fff 0%, #dcfaff 12%, transparent 33%), linear-gradient(145deg, #b9f4ff, #70d7ff 45%, #349bfa);
+  box-shadow: 0 0 0 9px #73d9ff0c, 0 0 0 10px #9ceaff2d, 0 0 42px #3bc4ff47, 0 18px 0 #1765a6, 0 29px 48px #0006, inset 0 -8px 18px #1c78c77a, inset 0 4px 7px #ffffffd9;
+  transition: transform .07s ease, filter .15s;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+#clickButton:hover { filter: brightness(1.08); }
+#clickButton:active, #clickButton.pressed {
+  transform: translateY(9px) scale(.965);
+  box-shadow: 0 0 0 8px #73d9ff0c, 0 0 35px #3bc4ff65, 0 9px 0 #1765a6, 0 15px 25px #0006, inset 0 4px 7px #ffffffd9;
+}
+.button-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; pointer-events: none; }
+.snow-icon { font-size: 44px; line-height: 1; }
+.button-title { font-size: 17px; font-weight: 900; letter-spacing: 1.5px; }
+.button-hint { font-size: 9px; letter-spacing: 2px; font-weight: 900; opacity: .65; }
+.arena-note { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: #6e8da3; font-size: 10px; letter-spacing: 1px; }
+
+.progress-wrap { margin: 3px 0 19px; }
+.progress-head { display: flex; justify-content: space-between; gap: 10px; color: #94adbf; font-size: 11px; margin-bottom: 9px; }
+.progress-head strong { color: #dff8ff; }
+.progress-track { height: 7px; border-radius: 99px; background: #030d16; overflow: hidden; }
+#progressBar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #40baff, #c4f7ff); box-shadow: 0 0 15px #4dc9ff77; transition: width .15s; }
+
+.controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.control-btn { flex: 1; min-width: 130px; padding: 13px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 900; transition: .2s; }
+.control-btn.primary { border: 1px solid #a6eaff; color: #071b2b; background: linear-gradient(100deg, #a5edff, #55bdff); }
+.control-btn.secondary { border: 1px solid var(--line); color: #b2c9d9; background: #102438; }
+.control-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.hint { color: #6f8ba0; font-size: 10px; text-align: center; margin: 16px 0 0; }
+
+.page { display: none; }
+.page.active { display: block; }
+.milestone-heading { margin: 8px 0 22px; }
+.milestone-heading h2 { font-size: 27px; margin: 0; }
+.milestone-heading p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.milestone-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.milestone-card {
+  text-align: left; padding: 19px; color: #eaf9ff; background: linear-gradient(145deg, #132d42, #0a1928);
+  border: 1px solid var(--line); border-radius: 17px; cursor: pointer; transition: .2s;
+}
+.milestone-card:hover { transform: translateY(-3px); border-color: #8ce4ff66; }
+.milestone-card .number { color: #85ddff; font-weight: 900; font-size: 10px; letter-spacing: 2px; }
+.milestone-card h3 { font-size: 18px; margin: 9px 0 7px; }
+.milestone-card p { color: #8da8ba; font-size: 11px; line-height: 1.6; margin: 0 0 15px; }
+.card-bottom { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.card-bottom span { font-size: 10px; color: #7693a8; }
+.card-bottom .replay { color: #c5f3ff; font-weight: 900; }
+
+footer { text-align: center; color: #526d81; font-size: 10px; margin-top: 25px; letter-spacing: .5px; }
+
+/* Effects are overlays only. They NEVER intercept gameplay input. */
+#effectLayer {
+  position: fixed; inset: 0; pointer-events: none !important;
+  z-index: 50; overflow: hidden;
+}
+.particle {
+  position: absolute; left: var(--x); top: var(--y); font-size: var(--size);
+  color: var(--color, #c7f7ff); animation: particleFly .85s ease-out forwards;
+  text-shadow: 0 0 12px currentColor;
+}
+@keyframes particleFly {
+  from { transform: translate(-50%, -50%) scale(.3) rotate(0); opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3) rotate(160deg); opacity: 0; }
+}
+.flash {
+  position: fixed; inset: 0; z-index: 51; pointer-events: none !important;
+  background: #d9faff; animation: flash .4s ease-out forwards;
+}
+@keyframes flash { 0% { opacity: .8; } 100% { opacity: 0; } }
+
+.shockwave {
+  position: fixed; left: var(--x); top: var(--y); width: 15px; height: 15px;
+  border: 3px solid #c8f7ff; border-radius: 50%; z-index: 49;
+  pointer-events: none !important; animation: shockwave 1s ease-out forwards;
+  box-shadow: 0 0 25px #59d6ff;
+}
+@keyframes shockwave {
+  from { transform: translate(-50%, -50%) scale(.2); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(24); opacity: 0; }
+}
+
+/* Transparent scene text sits over the game; no modal background or click blocking. */
+#sceneOverlay {
+  position: fixed; inset: 0; z-index: 45; display: none;
+  place-items: center; text-align: center; padding: 22px;
+  background: transparent; overflow: hidden; pointer-events: none !important;
+}
+#sceneOverlay.show { display: grid; pointer-events: none !important; }
+.scene-inner {
+  position: relative; z-index: 2; width: min(600px, 100%);
+  padding: 22px; border-radius: 22px; background: #061a2b45;
+  border: 1px solid #c6f5ff1a; text-shadow: 0 2px 15px #00111f;
+  animation: sceneAppear .35s ease-out;
+}
+@keyframes sceneAppear { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+.scene-symbol { font-size: clamp(55px, 12vw, 105px); filter: drop-shadow(0 0 28px #69d9ff); animation: symbolFloat 1s ease-in-out infinite alternate; }
+@keyframes symbolFloat { to { transform: translateY(-10px) rotate(8deg) scale(1.08); } }
+.scene-title { font-size: clamp(24px, 5vw, 43px); font-weight: 900; margin: 12px 0; letter-spacing: -1px; }
+.scene-description { color: #d2f1ff; font-size: 13px; line-height: 1.7; }
+.scene-close { display: none !important; }
+
+.final-flash {
+  position: fixed; inset: 0; z-index: 52; pointer-events: none !important;
+  background: #dffaff; animation: finalFlash .23s ease-out forwards;
+}
+@keyframes finalFlash { from { opacity: .95; } to { opacity: 0; } }
+#toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px);
+  opacity: 0; pointer-events: none !important; z-index: 80;
+  background: #dffaff; color: #09243b; padding: 12px 18px; border-radius: 12px;
+  font-size: 12px; font-weight: 900; box-shadow: 0 10px 35px #0005;
+  transition: .25s; max-width: calc(100% - 24px); text-align: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 650px) {
+  .app { width: calc(100% - 20px); padding-top: 15px; }
+  .brand { font-size: 16px; }
+  .logo { width: 38px; height: 38px; }
+  .nav button { padding: 10px; font-size: 10px; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+  .stat { padding: 14px; }
+  .game-panel { padding: 14px; }
+  .arena { min-height: 310px; }
+  #clickButton { width: 175px; height: 175px; }
+  .orbit { width: 240px; height: 240px; }
+  .orbit.two { width: 270px; height: 200px; }
+  .milestone-grid { grid-template-columns: 1fr; }
+  h1 { letter-spacing: -2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit { animation-duration: 60s; }
+}
+</style>
+</head>
+
+<body>
+<div id="effectLayer"></div>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">❄</div>
+      <div>FROSTCLICK<small>BREAK THE LIMIT</small></div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-page="game">⚡ Play</button>
+      <button data-page="milestones">✦ Milestones</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="game" class="page active">
+      <div class="hero">
+        <div class="eyebrow">THE FROST CHALLENGE</div>
+        <h1>BREAK THE <span>ICE.</span></h1>
+        <div class="subtitle">Click faster. Reach milestones. Unleash the supernova.</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Total clicks</div><div class="stat-value" id="clicks">0</div></div>
+        <div class="stat"><div class="stat-label">Live CPS</div><div class="stat-value" id="cps">0.0 <small>CPS</small></div></div>
+        <div class="stat"><div class="stat-label">Peak CPS</div><div class="stat-value" id="peak">0.0 <small>CPS</small></div></div>
+        <div class="stat"><div class="stat-label">Personal best</div><div class="stat-value" id="best">0</div></div>
+      </div>
+
+      <section class="game-panel">
+        <div class="game-top">
+          <div class="pill"><span id="statusDot" class="dot"></span><span id="status">READY TO FREEZE</span></div>
+          <div class="timer-options">
+            <button data-time="10">10 SEC</button>
+            <button data-time="30">30 SEC</button>
+            <button class="active" data-time="60">60 SEC</button>
+          </div>
+          <div class="pill">TIME <strong id="time">60.0s</strong></div>
+        </div>
+
+        <div class="arena">
+          <div class="orbit"></div>
+          <div class="orbit two"></div>
+          <button id="clickButton" aria-label="Click to break the ice">
+            <span class="button-content">
+              <span class="snow-icon">❄</span>
+              <span class="button-title">CLICK ME</span>
+              <span class="button-hint">BREAK THE ICE</span>
+            </span>
+          </button>
+          <div class="arena-note">EVERY CLICK MAKES THE FROST STRONGER</div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-head"><span id="nextMilestone">NEXT: 10 CLICKS</span><strong id="progressText">0 / 10</strong></div>
+          <div class="progress-track"><div id="progressBar"></div></div>
+        </div>
+
+        <div class="controls">
+          <button class="control-btn primary" id="startBtn">▶ START ROUND</button>
+          <button class="control-btn secondary" id="resetBtn">↻ RESET ROUND</button>
+        </div>
+        <p class="hint">Click the ice core or press SPACE. Effects play over the game without stopping your clicks.</p>
+      </section>
+    </section>
+
+    <section id="milestones" class="page">
+      <div class="milestone-heading">
+        <div class="eyebrow">YOUR FROST JOURNEY</div>
+        <h2>Milestone Archive</h2>
+        <p>Tap any milestone to replay its transparent effects over the game.</p>
+      </div>
+      <div class="milestone-grid" id="milestoneGrid"></div>
+    </section>
+  </main>
+  <footer>FROSTCLICK · BUILT FOR THE CLICK-CRAZY · UNLIMITS AWAITS</footer>
+</div>
+
+<div id="sceneOverlay" aria-live="polite">
+  <div class="scene-inner">
+    <div class="scene-symbol" id="sceneSymbol">❄</div>
+    <div class="scene-title" id="sceneTitle">FROST AWAKENS</div>
+    <div class="scene-description" id="sceneDescription"></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const milestones = [
+  { count: 10, title: "Frost Awakens", symbol: "❄️", description: "A burst of icy energy erupts from the core.", kind: "burst" },
+  { count: 100, title: "Glacial Impact", symbol: "💥", description: "Expanding shock rings race across the frozen arena.", kind: "mega" },
+  { count: 200, title: "Frost Supernova", symbol: "🌟", description: "Four stars converge into one brilliant orb before a supernova.", kind: "supernova" },
+  { count: 300, title: "Absolute Zero", symbol: "🌌", description: "A transparent cinematic wave of blue energy sweeps through the world.", kind: "absolute" },
+  { count: 500, title: "Frostbite Supernova", symbol: "❄️", description: "The world freezes, cracks apart, and reveals the ultimate snowflake.", kind: "final" }
+];
+
+let roundLength = 60;
+let count = 0;
+let peakCps = 0;
+let roundActive = false;
+let roundStarted = false;
+let unlimits = false;
+let startTime = 0;
+let endTime = 0;
+let lastClickTimes = [];
+let timerInterval = null;
+let achieved = new Set();
+let sceneTimers = [];
+let best = loadBest();
+let finalSceneRunning = false;
+
+function loadBest() {
+  try { return Number(localStorage.getItem("frostclick-best") || 0); }
+  catch { return 0; }
+}
+function saveBest(value) {
+  try { localStorage.setItem("frostclick-best", String(value)); } catch {}
+}
+function elapsed() {
+  return roundStarted ? Math.max(0, (performance.now() - startTime) / 1000) : 0;
+}
+function liveCps() {
+  const now = performance.now();
+  lastClickTimes = lastClickTimes.filter(t => now - t < 1000);
+  return lastClickTimes.length;
+}
+
+function updateUI() {
+  $("clicks").textContent = count.toLocaleString();
+  $("cps").innerHTML = liveCps().toFixed(1) + " <small>CPS</small>";
+  $("peak").innerHTML = peakCps.toFixed(1) + " <small>CPS</small>";
+  $("best").textContent = best.toLocaleString();
+
+  const remaining = unlimits ? Infinity : Math.max(0, (endTime - performance.now()) / 1000);
+  $("time").textContent = unlimits ? "∞" : (roundStarted ? remaining.toFixed(1) : roundLength.toFixed(1)) + "s";
+  $("status").textContent = unlimits ? "UNLIMITS ACTIVE" : roundActive ? "FROST IN MOTION" : roundStarted ? "ROUND COMPLETE" : "READY TO FREEZE";
+  $("statusDot").classList.toggle("live", roundActive || unlimits);
+  $("startBtn").textContent = unlimits ? "∞ UNLIMITS ACTIVE" : roundActive ? "ROUND IN PROGRESS" : "▶ START ROUND";
+  $("startBtn").disabled = roundActive || unlimits;
+  $("startBtn").style.opacity = roundActive || unlimits ? ".55" : "1";
+
+  const next = milestones.find(m => count < m.count);
+  if (!next || unlimits) {
+    $("nextMilestone").textContent = "ALL LIMITS BROKEN";
+    $("progressText").textContent = unlimits ? "∞" : count + " CLICKS";
+    $("progressBar").style.width = "100%";
+  } else {
+    const index = milestones.indexOf(next);
+    const previous = index > 0 ? milestones[index - 1].count : 0;
+    $("nextMilestone").textContent = "NEXT: " + next.count + " CLICKS";
+    $("progressText").textContent = count + " / " + next.count;
+    $("progressBar").style.width = Math.min(100, Math.max(0, (count - previous) / (next.count - previous) * 100)) + "%";
+  }
+  renderMilestones();
+}
+
+function startRound() {
+  if (roundActive || unlimits) return;
+  count = 0;
+  peakCps = 0;
+  lastClickTimes = [];
+  achieved = new Set();
+  roundStarted = true;
+  roundActive = true;
+  finalSceneRunning = false;
+  startTime = performance.now();
+  endTime = startTime + roundLength * 1000;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    updateUI();
+    if (performance.now() >= endTime && roundActive) endRound();
+  }, 50);
+  updateUI();
+  toast("ROUND STARTED — BREAK THE ICE!");
+}
+
+function endRound() {
+  if (unlimits) return;
+  roundActive = false;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  updateUI();
+  toast("ROUND OVER — " + count + " CLICKS!");
+}
+
+function resetRound() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  sceneTimers.forEach(clearTimeout);
+  sceneTimers = [];
+  roundActive = false;
+  roundStarted = false;
+  unlimits = false;
+  finalSceneRunning = false;
+  count = 0;
+  peakCps = 0;
+  achieved = new Set();
+  lastClickTimes = [];
+  $("sceneOverlay").classList.remove("show");
+  document.querySelectorAll(".shockwave, .final-flash").forEach(e => e.remove());
+  updateUI();
+  toast("ROUND RESET");
+}
+
+function toast(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+  clearTimeout(toast.timeout);
+  toast.timeout = setTimeout(() => $("toast").classList.remove("show"), 2200);
+}
+
+function schedule(callback, delay) {
+  const id = setTimeout(callback, delay);
+  sceneTimers.push(id);
+  return id;
+}
+
+function particles(x, y, amount = 12, symbols = ["✦", "❄", "✧"]) {
+  const layer = $("effectLayer");
+  for (let i = 0; i < amount; i++) {
+    const p = document.createElement("span");
+    p.className = "particle";
+    p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    p.style.setProperty("--x", x + "px");
+    p.style.setProperty("--y", y + "px");
+    p.style.setProperty("--dx", (Math.random() - .5) * 320 + "px");
+    p.style.setProperty("--dy", (Math.random() - .5) * 320 + "px");
+    p.style.setProperty("--size", (10 + Math.random() * 20) + "px");
+    p.style.setProperty("--color", ["#d9fbff", "#78d9ff", "#ffffff"][Math.floor(Math.random() * 3)]);
+    layer.appendChild(p);
+    setTimeout(() => p.remove(), 900);
+  }
+}
+
+function flashScreen(duration = 400) {
+  const f = document.createElement("div");
+  f.className = "flash";
+  f.style.animationDuration = duration + "ms";
+  $("effectLayer").appendChild(f);
+  setTimeout(() => f.remove(), duration + 50);
+}
+
+function shockwave(x = innerWidth / 2, y = innerHeight / 2, duration = 1000) {
+  const ring = document.createElement("div");
+  ring.className = "shockwave";
+  ring.style.setProperty("--x", x + "px");
+  ring.style.setProperty("--y", y + "px");
+  ring.style.animationDuration = duration + "ms";
+  $("effectLayer").appendChild(ring);
+  setTimeout(() => ring.remove(), duration + 50);
+}
+
+function buttonBurst(amount = 7) {
+  const rect = $("clickButton").getBoundingClientRect();
+  particles(rect.left + rect.width / 2, rect.top + rect.height / 2, amount);
+}
+
+function showSceneText(milestone, description = milestone.description, duration = 1800) {
+  $("sceneOverlay").classList.add("show");
+  $("sceneSymbol").textContent = milestone.symbol;
+  $("sceneTitle").textContent = milestone.title.toUpperCase();
+  $("sceneDescription").textContent = description;
+  schedule(() => $("sceneOverlay").classList.remove("show"), duration);
+}
+
+function playScene(m, fromGame = false, recordedTime = null) {
+  // Effects are decorative: never pause the game or disable the button.
+  if (m.kind === "burst") {
+    buttonBurst(28);
+    flashScreen(250);
+    showSceneText(m, "10 CLICKS! Your frost power has awakened.", 1300);
+  }
+
+  if (m.kind === "mega") {
+    showSceneText(m, "100 CLICKS! THE GLACIER BREAKS!", 2000);
+    flashScreen(450);
+    for (let i = 0; i < 5; i++) schedule(() => shockwave(innerWidth / 2, innerHeight / 2, 1200), i * 180);
+    particles(innerWidth / 2, innerHeight / 2, 65, ["❄", "✦", "✧", "✴"]);
+  }
+
+  if (m.kind === "supernova") {
+    showSceneText(m, "Four stars converge... the orb charges... FROST SUPERNOVA!", 2800);
+    const cx = innerWidth / 2, cy = innerHeight / 2;
+    const stars = ["✦", "✦", "✦", "✦"];
+    stars.forEach((s, i) => {
+      const angle = i * Math.PI / 2;
+      particles(cx + Math.cos(angle) * 180, cy + Math.sin(angle) * 120, 15, [s]);
+    });
+    schedule(() => {
+      flashScreen(550);
+      shockwave(cx, cy, 1300);
+      shockwave(cx, cy, 1700);
+      particles(cx, cy, 90, ["✦", "❄", "✧", "✴"]);
+    }, 950);
+  }
+
+  if (m.kind === "absolute") {
+    showSceneText(m, "300 CLICKS! ABSOLUTE ZERO HAS BEEN UNLEASHED.", 3000);
+    flashScreen(600);
+    schedule(() => shockwave(innerWidth / 2, innerHeight / 2, 1800), 400);
+    schedule(() => particles(innerWidth / 2, innerHeight / 2, 100, ["❄", "✦", "✧"]), 650);
+    schedule(() => flashScreen(350), 1100);
+  }
+
+  if (m.kind === "final") {
+    runFinalCutscene(recordedTime ?? elapsed());
+  }
+}
+
+function runFinalCutscene(finalTime) {
+  finalSceneRunning = true;
+  const overlay = $("sceneOverlay");
+  const symbol = $("sceneSymbol");
+  const title = $("sceneTitle");
+  const description = $("sceneDescription");
+
+  const steps = [
+    ["❄️", "FROZEN IN TIME", "The world turns almost white-blue..."],
+    ["❄️", "CRACKING...", "The frozen surface starts to fracture."],
+    ["✴️", "THE GREAT FRACTURE", "Eight flashes. The ice cannot contain this power."],
+    ["❄️", "THE GIANT SNOWFLAKE", "A colossal snowflake appears and spins faster and faster."],
+    ["💧", "TOTAL MELTDOWN", "The snowflake melts into pure energy."],
+    ["🌠", "FROSTBITE SUPERNOVA", "A final blast tears through the frozen sky!"]
+  ];
+
+  let step = 0;
+  overlay.classList.add("show");
+
+  function nextStep() {
+    if (step >= steps.length) {
+      symbol.textContent = "∞";
+      title.textContent = "YOU'VE REACHED 500 CLICKS!";
+      description.textContent = "You've reached 500 clicks in " + finalTime.toFixed(2) + " seconds. congrats!";
+      schedule(() => {
+        overlay.classList.remove("show");
+        finalSceneRunning = false;
+        unlimits = true;
+        roundActive = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        updateUI();
+        toast("UNLIMITS UNLOCKED — KEEP CLICKING!");
+      }, 2600);
+      return;
+    }
+
+    const current = steps[step];
+    symbol.textContent = current[0];
+    title.textContent = current[1];
+    description.textContent = current[2];
+
+    if (step < 3) {
+      document.body.style.background = step % 2 === 0
+        ? "radial-gradient(ellipse at 50% 0%, #bcefff, #071321 80%)"
+        : "radial-gradient(ellipse at 50% 0%, #65caff, #071321 80%)";
+      flashScreen(220);
+    } else {
+      document.body.style.background = "";
+    }
+
+    if (step === 3) {
+      symbol.style.animationDuration = ".13s";
+      for (let i = 0; i < 8; i++) schedule(() => flashScreen(170), i * 230);
+      schedule(() => shockwave(innerWidth / 2, innerHeight / 2, 1600), 400);
+    }
+
+    if (step === 4) {
+      symbol.style.animationDuration = ".6s";
+      particles(innerWidth / 2, innerHeight / 2, 70, ["💧", "✧", "❄"]);
+    }
+
+    if (step === 5) {
+      symbol.style.animationDuration = ".3s";
+      flashScreen(650);
+      shockwave(innerWidth / 2, innerHeight / 2, 1800);
+      shockwave(innerWidth / 2, innerHeight / 2, 2200);
+      particles(innerWidth / 2, innerHeight / 2, 110, ["✦", "❄", "✴", "✧"]);
+    }
+
+    step++;
+    schedule(nextStep, step <= 3 ? 650 : 1400);
+  }
+
+  nextStep();
+}
+
+function clickGame() {
+  // Do not check scene visibility here: clicks must work through all effects.
+  if (!roundActive && !unlimits) {
+    if (!roundStarted) startRound();
+    if (!roundActive) return;
+  }
+
+  count++;
+  lastClickTimes.push(performance.now());
+  peakCps = Math.max(peakCps, liveCps());
+
+  const button = $("clickButton");
+  button.classList.add("pressed");
+  setTimeout(() => button.classList.remove("pressed"), 80);
+  buttonBurst(count % 10 === 0 ? 18 : 4);
+
+  if (count > best) {
+    best = count;
+    saveBest(best);
+  }
+
+  const milestone = milestones.find(m => m.count === count);
+  if (milestone && !achieved.has(count)) {
+    achieved.add(count);
+    if (count === 500) {
+      const timeAt500 = elapsed();
+      playScene(milestone, true, timeAt500);
+    } else {
+      playScene(milestone, true);
+    }
+  }
+
+  updateUI();
+}
+
+function renderMilestones() {
+  const grid = $("milestoneGrid");
+  grid.innerHTML = "";
+
+  milestones.forEach(m => {
+    const reached = achieved.has(m.count) || count >= m.count || unlimits;
+    const card = document.createElement("button");
+    card.className = "milestone-card";
+    card.innerHTML = `
+      <div class="number">${m.count} CLICKS</div>
+      <h3>${m.symbol} ${m.title}</h3>
+      <p>${m.description}</p>
+      <div class="card-bottom">
+        <span>${reached ? "✦ MILESTONE REACHED" : "SCENE PREVIEW"}</span>
+        <span class="replay">▶ REPLAY EFFECT</span>
+      </div>`;
+    card.addEventListener("click", () => playScene(m, false, elapsed()));
+    grid.appendChild(card);
+  });
+
+  const card = document.createElement("button");
+  card.className = "milestone-card";
+  card.innerHTML = `
+    <div class="number">AFTER 500 CLICKS</div>
+    <h3>∞ UNLIMITS</h3>
+    <p>No cap. No countdown. Keep clicking for as long as you want.</p>
+    <div class="card-bottom">
+      <span>${unlimits ? "✦ UNLOCKED" : "UNLOCK AT 500"}</span>
+      <span class="replay">${unlimits ? "▶ CONTINUE" : "LOCKED"}</span>
+    </div>`;
+  card.addEventListener("click", () => {
+    if (!unlimits) return toast("Reach 500 clicks to unlock UNLIMITS!");
+    document.querySelector('[data-page="game"]').click();
+  });
+  grid.appendChild(card);
+}
+
+document.querySelectorAll(".nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    $(button.dataset.page).classList.add("active");
+    updateUI();
+  });
+});
+
+document.querySelectorAll(".timer-options button").forEach(button => {
+  button.addEventListener("click", () => {
+    if (roundActive || unlimits) return toast("Reset the round before changing the timer.");
+    roundLength = Number(button.dataset.time);
+    document.querySelectorAll(".timer-options button").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    $("time").textContent = roundLength.toFixed(1) + "s";
+  });
+});
+
+$("clickButton").addEventListener("click", clickGame);
+$("startBtn").addEventListener("click", startRound);
+$("resetBtn").addEventListener("click", resetRound);
+
+document.addEventListener("keydown", event => {
+  if (event.code === "Space") {
+    // Ignore Space only when typing into an input; visual effects do not block it.
+    if (event.target && ["INPUT", "TEXTAREA"].includes(event.target.tagName)) return;
+    event.preventDefault();
+    clickGame();
+  }
+  if (event.key.toLowerCase() === "r") resetRound();
+});
+
+setInterval(() => {
+  if (roundActive || unlimits) updateUI();
+}, 100);
+
+updateUI();
+</script>
+</body>
+</html>
